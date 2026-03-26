@@ -12,22 +12,27 @@ pipeline {
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[
-                        url: 'git@github.com:mymakingfun/jenkins-snippet.git',
+                        url: 'git@github.com:mymakingfun/java-project.git',
                         credentialsId: 'github-ssh'
                     ]],
                     doGenerateSubmoduleConfigurations: false,
                     submoduleCfg: [],
-                    extensions: []
+                    extensions: [[
+                        $class: 'RelativeTargetDirectory',
+                        relativeTargetDir: 'java-project'
+                    ]]
                 ])
             }
         }
         stage('Build with Maven') {
             steps {
-                withMaven() {
-                    sh 'mvn clean package'
+                dir('java-project') {
+                    withMaven() {
+                        sh 'mvn clean package'
+                    }
                 }
-                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
-                junit '**/target/surefire-reports/*.xml'
+                archiveArtifacts artifacts: 'java-project/target/*.jar', fingerprint: true
+                junit 'java-project/target/surefire-reports/*.xml'
             }
         }
     }
