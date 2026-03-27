@@ -1,0 +1,2 @@
+# jenkins-snippet
+jenkins pipelines
