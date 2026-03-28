@@ -1,38 +1,30 @@
 pipeline {
     agent {
         docker {
-            image 'maven:3.9.6-eclipse-temurin-17'
-            args '-v $HOME/.m2:/root/.m2'
+            image 'maven:3.9.14-eclipse-temurin-25'
+            args '-v /var/lib/jenkins/.m2:/root/.m2'
         }
+    }
+    environment {
+        PROJECT_NAME = 'java-project'
     }
     stages {
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        url: 'git@github.com:mymakingfun/java-project.git',
-                        credentialsId: 'github-ssh'
-                    ]],
-                    doGenerateSubmoduleConfigurations: false,
-                    submoduleCfg: [],
-                    extensions: [[
-                        $class: 'RelativeTargetDirectory',
-                        relativeTargetDir: 'java-project'
-                    ]]
-                ])
+                withCredentials([usernamePassword(credentialsId: 'github-https', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    sh """
+                        git clone --branch main https://$GIT_USER:$GIT_TOKEN@github.com/mymakingfun/${PROJECT_NAME}.git ${PROJECT_NAME}
+                    """
+                }
             }
         }
         stage('Build with Maven') {
             steps {
-                dir('java-project') {
-                    withMaven() {
-                        sh 'mvn clean package'
-                    }
+                dir("${PROJECT_NAME}") {
+                    sh 'mvn clean package'
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                    junit 'target/surefire-reports/*.xml'
                 }
-                archiveArtifacts artifacts: 'java-project/target/*.jar', fingerprint: true
-                junit 'java-project/target/surefire-reports/*.xml'
             }
         }
     }
