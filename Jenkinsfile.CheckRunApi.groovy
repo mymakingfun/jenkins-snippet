@@ -77,7 +77,7 @@ pipeline {
                         // echo "Repo Info: ${repoJson}"
 
                          def check_url="${GITHUB_API_URL}/repos/${GITHUB_ACCOUNT}/${GITHUB_REPO}/check-runs"
-                         def commit="7cf911f745fd0c0b367109d04e285e8b3ce0b635"
+                         def commit="0fef4c3b8dafdc5b1418bcdb66272af3579b95d1"
                          def checkRunJson = sh(
                             script: """
                                 curl -sSL -X POST ${check_url} \\
