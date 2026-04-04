@@ -36,62 +36,64 @@ pipeline {
                         def jwt = "${unsigned_token}.${signature_b64}"
 
                         // 2. 查询 installation id
-                        def installationsJson = sh(
+                        def installationId = sh(
                             script: """
                                 curl -s -H "Authorization: Bearer ${jwt}" \\
                                     -H "Accept: application/vnd.github+json" \\
-                                    ${env.GITHUB_API_URL}/app/installations
+                                    ${env.GITHUB_API_URL}/app/installations \\
+                                    | jq -r '.[] | select(.account.login == "${env.GITHUB_ACCOUNT}") | .id'
                             """,
                             returnStdout: true
                         ).trim()
-                        def installations = new groovy.json.JsonSlurper().parseText(installationsJson)
-                        def installationId = installations.find { it.account.login == env.GITHUB_ACCOUNT }?.id
+                        // def installations = new groovy.json.JsonSlurper().parseText(installationsJson)
+                        // def installationId = installations.find { it.account.login == env.GITHUB_ACCOUNT }?.id
                         if (!installationId) {
                             error "No installation found for account: ${env.GITHUB_ACCOUNT}"
                         }
                         echo "Installation ID: ${installationId}"
 
                         // 3. 换取 Installation Token
-                        def tokenJson = sh(
+                        def access_token = sh(
                             script: """
-                                curl -s -X POST \\
+                                curl -sSL -X POST \\
                                   -H "Authorization: Bearer ${jwt}" \\
                                   -H "Accept: application/vnd.github+json" \\
-                                  ${env.GITHUB_API_URL}/app/installations/${installationId}/access_tokens
+                                  ${env.GITHUB_API_URL}/app/installations/${installationId}/access_tokens \\
+                                  | jq -r '.token'
                             """,
                             returnStdout: true
                         ).trim()
-                        def access_token = new groovy.json.JsonSlurper().parseText(tokenJson).token
+                        // def access_token = new groovy.json.JsonSlurper().parseText(tokenJson).token
 
                         // 4. 用 Installation Token 访问 GitHub API
-                        def repoJson = sh(
-                            script: """
-                                curl -s -H "Authorization: Bearer ${access_token}" \\
-                                    -H "Accept: application/vnd.github+json" \\
-                                    ${env.GITHUB_API_URL}/repos/${env.GITHUB_ACCOUNT}/${env.GITHUB_REPO}
-                            """,
-                            returnStdout: true
-                        ).trim()
-                        echo "Repo Info: ${repoJson}"
+                        // def repoJson = sh(
+                        //     script: """
+                        //         curl -sSL -H "Authorization: Bearer ${access_token}" \\
+                        //             -H "Accept: application/vnd.github+json" \\
+                        //             ${env.GITHUB_API_URL}/repos/${env.GITHUB_ACCOUNT}/${env.GITHUB_REPO}
+                        //     """,
+                        //     returnStdout: true
+                        // ).trim()
+                        // echo "Repo Info: ${repoJson}"
 
                          def check_url="${GITHUB_API_URL}/repos/${GITHUB_ACCOUNT}/${GITHUB_REPO}/check-runs"
                          def commit="7cf911f745fd0c0b367109d04e285e8b3ce0b635"
                          def checkRunJson = sh(
                             script: """
-                                curl -sSL -X POST "${check_url}" \
-                                -H "Authorization: Bearer ${access_token}" \
-                                -H "Accept: application/vnd.github.v3+json" \
+                                curl -sSL -X POST ${check_url} \\
+                                -H "Authorization: Bearer ${access_token}" \\
+                                -H "Accept: application/vnd.github.v3+json" \\
                                 -d "{
-                                    "name": "ci/build",
-                                    "head_sha": "${commit}",
-                                    "status": "in_progress",
-                                    "details_url": "http://jenkins.example.com",
-                                    "external_id": "jenkins",
-                                    "conclusion": null,
-                                    "output": {
-                                        "title": "Build in progress",
-                                        "summary": "The build is currently running.",
-                                        "text": "Check the Jenkins console for more details."
+                                    \\"name\\": \\"ci/build\\",
+                                    \\"head_sha\\": \\"${commit}\\",
+                                    \\"status\\": \\"completed\\",
+                                    \\"details_url\\": \\"http://jenkins.example.com\\",
+                                    \\"external_id\\": \\"jenkins\\",
+                                    \\"conclusion\\": \\"success\\",
+                                    \\"output\\": {
+                                        \\"title\\": \\"Build in progress\\",
+                                        \\"summary\\": \\"The build is currently running.\\",
+                                        \\"text\\": \\"Check the Jenkins console for more details.\\"
                                     }
                                 }"
                             """,
