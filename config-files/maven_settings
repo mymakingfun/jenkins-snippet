@@ -1,0 +1,67 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <mirrors>
+        <mirror>
+            <id>nexus-public</id>
+            <mirrorOf>*</mirrorOf>
+            <url>http://192.168.183.100:8081/repository/maven-public/</url>
+        </mirror>
+    </mirrors>
+
+    <profiles>
+        <profile>
+            <id>nexus</id>
+            <repositories>
+                <repository>
+                    <id>maven-releases</id>
+                    <url>http://192.168.183.100:8081/repository/maven-releases/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>maven-snapshots</id>
+                    <url>http://192.168.183.100:8081/repository/maven-snapshots/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>maven-releases</id>
+                    <url>http://192.168.183.100:8081/repository/maven-releases/</url>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>maven-snapshots</id>
+                    <url>http://192.168.183.100:8081/repository/maven-snapshots/</url>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>nexus</activeProfile>
+    </activeProfiles>
+
+    <servers>
+        <server>
+            <id>maven-public</id>
+        </server>
+        <server>
+            <id>maven-releases</id>
+        </server>
+        <server>
+            <id>maven-snapshots</id>
+        </server>
+    </servers>
+
+</settings>
