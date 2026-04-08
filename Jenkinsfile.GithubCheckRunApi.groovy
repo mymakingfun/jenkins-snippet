@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'linux' }
+    agent { label 'inbound-agent' }
     environment {
         GITHUB_APP_ID = '3262961' // 替换为你的 App ID
         GITHUB_ACCOUNT = 'mymakingfun' // 替换为你的 GitHub 用户名或组织名
